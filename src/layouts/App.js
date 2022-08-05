@@ -6,13 +6,21 @@ import './App.scss';
 import data from '../components/data.js';
 import Detail from '../pages/detail.js';
 import { Routes, Route, useNavigate, Outlet } from 'react-router-dom';
-import About from '../pages/about';
 
+import axios from 'axios';
+import Cart from '../components/Cart';
+import { useQuery } from '@tanstack/react-query';
 function App() {
-	let [shoes] = useState(data);
+	let [shoes, setShoes] = useState(data);
 	let navigate = useNavigate();
 
-	useEffect(() => {}, []);
+	let result = useQuery('작명', () =>
+		axios.get('https://codingapple1.github.io/userdata.json').then((a) => {
+			return a.data;
+		})
+	);
+
+	console.log(result);
 
 	return (
 		<div className='App'>
@@ -34,7 +42,14 @@ function App() {
 								}}>
 								상세페이지
 							</Nav.Link>
+							<Nav.Link
+								onClick={() => {
+									navigate('/cart');
+								}}>
+								카트
+							</Nav.Link>
 						</Nav>
+						<Nav className='ms-auto'></Nav>
 					</Navbar.Collapse>
 				</Container>
 			</Navbar>
@@ -43,22 +58,31 @@ function App() {
 				<Route
 					path='/'
 					element={
-						<div className='container'>
-							<div className='row'>
-								{shoes.map((a, i) => {
-									return <Card shoes={shoes} i={i + 1} key={a.id} />;
-								})}
+						<>
+							<div className='container'>
+								<div className='row'>
+									{shoes.map((a, i) => {
+										return <Card shoes={shoes} i={i + 1} key={a.id} />;
+									})}
+								</div>
+								<button
+									onClick={() => {
+										axios
+											.get('https://codingapple1.github.io/shop/data2.json')
+											.then((datas) => {
+												let copy = [...shoes, ...datas.data];
+												setShoes(copy);
+											});
+									}}>
+									더보기
+								</button>
 							</div>
-						</div>
+						</>
 					}
 				/>
 				<Route path='/detail/:id' element={<Detail shoes={shoes} />} />
 				<Route path='/*' element={<div>없는 페이지 입니다.</div>} />
-
-				<Route path='/about' element={<About />}>
-					<Route path='member' element={<div>멤버들</div>} />
-					<Route path='location' element={<div>회사위치</div>} />
-				</Route>
+				<Route path='/cart' element={<Cart />} />
 			</Routes>
 		</div>
 	);
